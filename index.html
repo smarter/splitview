@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SplitView</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="./main.css">
+    <link rel="stylesheet" href="./splitview.css" id="viewLink">
+    <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/URI.js/1.11.2/URI.min.js"></script>
+    <script src="./mediagroupjs/src/mediagroup.js"></script>
+
+    <style id="inlineStyle">
+      /* Will be filled by js code */
+    </style>
+
+    <script>
+      var leftVidLoadedDataFired = false;
+    </script>
+  </head>
+  <body>
+    <div class="container-fluid text-center">
+      <div class="page-header">
+        <h1>SplitView</h1>
+        Visual comparison of videos. <a href="//github.com/smarter/splitview">Get the source.</a>
+      </div>
+      <div id="warnVP9" class="warnBox alert alert-warning alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        Your browser does not support the VP9 video codec. The following
+        browsers are supported and known to support VP9:
+        <ul>
+          <li><a href="//google.com/chrome">Chrome</a> (recommended)</li>
+          <li><a href="//mozilla.org/firefox">Firefox</a> version 28 or greater</li>
+        </ul>
+      </div>
+      <div id="warnH264" class="warnBox alert alert-warning alert-dismissable">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        Your browser does not support the H.264 video codec. The following
+        browsers are supported and known to support H.264:
+        <ul>
+          <li><a href="//google.com/chrome">Chrome</a> (recommended)</li>
+          <li><a href="//mozilla.org/firefox">Firefox</a></li>
+        </ul>
+      </div>
+      <div class="unbounded-elem">
+        <ul class="nav nav-pills">
+          <li class="active"><a href="#" data-toggle="tab" data-css="./splitview.css">Split View</a></li>
+          <li><a href="#" data-toggle="tab" data-css="./vertview.css">Vertical View</a></li>
+          <li><a href="#" data-toggle="tab" data-css="./horizview.css">Horizontal View</a></li>
+        </ul>
+      </div>
+      <div class="unbounded-elem">
+        <select id="selectA" class="videoSelector">
+        </select>
+        <select id="selectB" class="videoSelector">
+        </select>
+      </div>
+      <div id="elems" class="unbounded-elem">
+        <input type="range" id="splitSlider">
+        <div id="left">
+          <video id="leftVid" src="./samples/sintel_trailer_2k_480p24.y4m-67kbps-libvpx-vp9-74074c9.webm"
+                 data-mediagroup="splitvideos" onloadeddata="leftVidLoadedDataFired = true;">
+          </video>
+        </div>
+        <div id="right">
+          <video id="rightVid" src="./samples/sintel_trailer_2k_480p24.y4m-67kbps-x264-956c8d8.mp4"
+                 data-mediagroup="splitvideos">
+          </video>
+        </div>
+        <input type="range" id="seekSlider" value="0" min="0" max="1" step="any">
+      </div>
+      <div>
+        <button type="button" id="playButton" class="btn btn-default btn-lg">
+          <span class="glyphicon glyphicon-play"></span>
+        </button>
+        <button type="button" id="backwardButton" class="btn btn-default btn-lg">
+          <span class="glyphicon glyphicon-backward"></span>
+        </button>
+        <button type="button" id="forwardButton" class="btn btn-default btn-lg">
+          <span class="glyphicon glyphicon-forward"></span>
+        </button>
+      </div>
+      <div>
+        <form id="rateForm">
+          <label for="rateInput">Playback Rate</label>
+          <input type="number" id="rateInput" value="1.0" step="0.1" required>
+        </form>
+      </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h2 class="panel-title">Share a link at current time</h2>
+        </div>
+        <div class="panel-body">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button id="getLinkButton" class="btn btn-default" type="button">Get Link</button>
+            </span>
+            <input type="url" id="getLinkUrl" class="form-control" readonly>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h2 class="panel-title">Compare other files</h2>
+        </div>
+        <div class="panel-body">
+          <form id="addUrlForm">
+            <div class="input-group">
+              <input type="url" id="videoUrl" class="form-control" placeholder="Enter the URL of a video (.ogg, .mp4 or .webm)" required>
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="submit">
+                  <span class="glyphicon glyphicon-plus"></span>
+                </button>
+              </span>
+            </div>
+          </form>
+          <div>
+            <input type="file" id="localFile" accept="video/*" multiple>
+            NOTE: The files won't be uploaded, they will only be available locally.
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h2 class="panel-title">Keyboard shortcuts</h2>
+        </div>
+        <div class="panel-body">
+          <table class="table table-condensed table-hover">
+            <tr>
+              <td><span class="glyphicon glyphicon-play"></span>/<span class="glyphicon glyphicon-pause"></span></td>
+              <td><kbd>[space]</kbd></td>
+            </tr>
+            <tr>
+              <td><span class="glyphicon glyphicon-backward"></span></td>
+              <td><kbd>h</kbd></td>
+            </tr>
+            <tr>
+              <td><span class="glyphicon glyphicon-forward"></span></td>
+              <td><kbd>l</kbd></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h2 class="panel-title">Encoding parameters used</h2>
+        </div>
+        <div class="panel-body">
+          <ul>
+            <li>VP9: <pre>vpxenc --codec=vp9 --good --cpu-used=0 --kf-max-dist=50 --target-bitrate=XXX in.y4m --output=out.webm</pre></li>
+            <li>H.264: <pre>
+x264 --preset placebo --pass 1 --keyint 50 --bitrate XXX in.y4m --output out.mp4
+x264 --preset placebo --pass 3 --keyint 50 --bitrate XXX in.y4m --output out.mp4
+# repeat until the bitrate matches the one in the VP9 file
+x264 --preset placebo --pass 3 --keyint 50 --bitrate XXX in.y4m --output out.mp4</pre>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <hr>
+        <footer>
+          <a href="//guillaume.martres.me">Contact</a>
+        </footer>
+      </div>
+    </div>
+    <script src="./compatcheck.js"></script>
+    <script src="./main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+#splitSlider {
+    display: none;
+}
+
+#left {
+    /* override width set by splitSlider */
+    width: auto !important;
+}

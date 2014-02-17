@@ -1,0 +1,12 @@
+#splitSlider {
+    display: none;
+}
+
+#left {
+    /* override width set by splitSlider */
+    width: auto !important;
+}
+
+#left, #right {
+    display: inline-block;
+}

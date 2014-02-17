@@ -1,0 +1,3 @@
+[submodule "mediagroupjs"]
+	path = mediagroupjs
+	url = https://github.com/smarter/mediagroup.js.git
