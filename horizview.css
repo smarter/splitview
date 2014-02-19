@@ -2,11 +2,11 @@
     display: none;
 }
 
-#left {
+#leftVidDiv, #leftImgDiv {
     /* override width set by splitSlider */
     width: auto !important;
 }
 
-#left, #right {
+#leftVidDiv, #leftImgDiv, #rightVidDiv, #rightImgDiv {
     display: inline-block;
 }

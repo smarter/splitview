@@ -3,14 +3,14 @@
     display: inline-block;
 }
 
-#left {
-    overflow: hidden;
-    z-index: 1;
+#leftVidDiv, #leftImgDiv {
     position: absolute;
     top: 0px;
+    overflow: hidden;
+    z-index: 1;
 }
 
-#right {
+#rightVidDiv, #rightImgDiv {
     z-index: 0;
 }
 

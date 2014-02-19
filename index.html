@@ -17,10 +17,6 @@
     <style id="inlineStyle">
       /* Will be filled by js code */
     </style>
-
-    <script>
-      var leftVidLoadedDataFired = false;
-    </script>
   </head>
   <body>
     <div class="container-fluid text-center">
@@ -61,19 +57,17 @@
       </div>
       <div id="elems" class="unbounded-elem">
         <input type="range" id="splitSlider">
-        <div id="left">
-          <video id="leftVid" data-mediagroup="splitvideos" onloadeddata="leftVidLoadedDataFired = true;">
-            <source src="./samples/sintel_trailer_2k_480p24.y4m-67kbps-libvpx-vp9-74074c9.webm">
-            <source src="./samples/black.mp4">
-            <source src="./samples/black.webm">
-          </video>
+        <div id="leftVidDiv">
+          <!-- leftVid will be here -->
         </div>
-        <div id="right">
-          <video id="rightVid" data-mediagroup="splitvideos">
-            <source src="./samples/sintel_trailer_2k_480p24.y4m-67kbps-x264-956c8d8.mp4">
-            <source src="./samples/black.webm">
-            <source src="./samples/black.mp4">
-          </video>
+        <div id="leftImgDiv">
+          <!-- leftImg will be here -->
+        </div>
+        <div id="rightVidDiv">
+          <!-- rightVid will be here -->
+        </div>
+        <div id="rightImgDiv">
+          <!-- rightImg will be here -->
         </div>
         <input type="range" id="seekSlider" value="0" min="0" max="1" step="any">
       </div>
@@ -114,7 +108,7 @@
         <div class="panel-body">
           <form id="addUrlForm">
             <div class="input-group">
-              <input type="url" id="videoUrl" class="form-control" placeholder="Enter the URL of a video (.ogg, .mp4 or .webm)" required>
+              <input type="url" id="videoUrl" class="form-control" placeholder="Enter the URL of a video (.ogg, .mp4 or .webm) or of an image" required>
               <span class="input-group-btn">
                 <button class="btn btn-default" type="submit">
                   <span class="glyphicon glyphicon-plus"></span>
@@ -123,7 +117,7 @@
             </div>
           </form>
           <div>
-            <input type="file" id="localFile" accept="video/*" multiple>
+            <input type="file" id="localFile" accept="video/*,image/*" multiple>
             NOTE: The files won't be uploaded, they will only be available locally.
           </div>
         </div>

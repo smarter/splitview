@@ -1,7 +1,5 @@
 "use strict";
 
-mediaGroupInit();
-
 var videoList = [
     {
         "sample": "big_buck_bunny_1000frames_720p24.y4m",
@@ -97,19 +95,43 @@ var forwardButton = document.getElementById("forwardButton");
 var getLinkButton = document.getElementById("getLinkButton");
 var getLinkUrl = document.getElementById("getLinkUrl");
 var inlineStyle = document.getElementById("inlineStyle");
-var left = document.getElementById("left");
-var leftVid = document.getElementById("leftVid");
+var leftImgDiv = document.getElementById("leftImgDiv");
+var leftVidDiv = document.getElementById("leftVidDiv");
 var localFile = document.getElementById("localFile");
 var playButton = document.getElementById("playButton");
 var rateForm = document.getElementById("rateForm");
 var rateInput = document.getElementById("rateInput");
-var rightVid = document.getElementById("rightVid");
+var rightImgDiv = document.getElementById("rightImgDiv");
+var rightVidDiv = document.getElementById("rightVidDiv");
 var seekSlider = document.getElementById("seekSlider");
 var selectA = document.getElementById("selectA");
 var selectB = document.getElementById("selectB");
 var splitSlider = document.getElementById("splitSlider");
 var videoUrl = document.getElementById("videoUrl");
 var viewLink = document.getElementById("viewLink");
+
+// Create the medias
+var leftImg = new Image();
+leftImg.id = "leftImg";
+var rightImg = new Image();
+rightImg.id = "rightImg";
+
+var leftVid = document.createElement("video");
+leftVid.id = "leftVid";
+leftVid.dataset.mediagroup = "splitvideos";
+var rightVid = document.createElement("video");
+rightVid.id = "rightVid";
+rightVid.dataset.mediagroup = "splitvideos";
+
+var vp8Fallback = document.createElement("source");
+vp8Fallback.src = "./samples/black.webm";
+var h264Fallback = document.createElement("source");
+h264Fallback.src = "./samples/black.mp4";
+
+$(leftVid).append($([vp8Fallback, h264Fallback]).clone());
+$(rightVid).append($([vp8Fallback, h264Fallback]).clone());
+
+mediaGroupSetup([leftVid, rightVid]);
 
 var controller = leftVid.controllerShim;
 
@@ -118,102 +140,70 @@ var videoArray = new Array();
 var playIcon = '<span class="glyphicon glyphicon-play"></span>';
 var pauseIcon = '<span class="glyphicon glyphicon-pause"></span>';
 
-var defaultParams = {
-    "leftVid": "./samples/sintel_trailer_2k_480p24.y4m-67kbps-libvpx-vp9-74074c9.webm",
-    "rightVid": "./samples/sintel_trailer_2k_480p24.y4m-67kbps-x264-956c8d8.mp4"
-};
-var uri = new URI(location.href);
-var params = uri.search(true);
-if (params.leftVid) {
-    leftVid.src = params.leftVid;
-} else {
-    uri.setSearch("leftVid", defaultParams.leftVid);
-}
-if (params.rightVid) {
-    rightVid.src = params.rightVid;
-} else {
-    uri.setSearch("rightVid", defaultParams.rightVid);
-}
+function loadMedia(name, thisParam, thisImg, thisVid, otherVid) {
+    var ext = name.split('.').pop();
 
-if (params.time) {
-    $(leftVid).on("loadeddata", function() {
-        controller.currentTime = params.time;
-    });
-}
+    uri.setSearch(thisParam, name);
 
-// Bootstrap tabs control
-$('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
-    viewLink.href = e.target.dataset.css;
-});
-
-$.fn.optGroups = function(labelText) {
-    var groups = this.children("optgroup[label='" + labelText + "']");
-    if (groups.length === 0) {
-        this.append($("<optgroup/>", {label: labelText}));
-        groups = this.children("optgroup[label='" + labelText + "']");
+    if (ext == "gif" || ext == "jpg" || ext == "jpeg" || ext == "png") {
+        var oldName = thisImg.src;
+        thisImg.src = name;
+        thisImg.style.display = "";
+        thisVid.style.display = "none";
+        if (oldName == name && thisImg == leftImg) {
+            // The load event won't be fired so we need to call the callback ourselves
+            onLeftImgLoaded();
+        }
+    } else {
+        thisVid.src = videoArray[name] || name;
+        thisVid.style.display = "";
+        thisImg.style.display = "none";
     }
-    return groups;
-};
+}
 
-$.each(videoList, function(i, v) {
-    if ((v.codec == "H.264" && canPlayH264) ||
-        (v.codec == "VP9" && canPlayVP9)) {
-        var groups = $(".videoSelector").optGroups(v.sample);
-        groups.append($("<option/>", {text: v.path}));
-        videoArray[v.path] = v.path;
-    }
-});
-
-$(selectA).val(uri.search(true).leftVid);
-$(selectB).val(uri.search(true).rightVid);
+function loadLeftMedia(name) {
+    loadMedia(name, "left", leftImg, leftVid, rightVid);
+}
+function loadRightMedia(name, reload) {
+    loadMedia(name, "right", rightImg, rightVid, leftVid);
+}
 
 $(selectA).change(function() {
-    var vidName = $(this).val();
-    uri.setSearch("leftVid", vidName);
-
-    try {
-        controller.currentTime = 0;
-    } catch (e) {
-        console.log(e.message);
-    }
-    leftVid.src = videoArray[vidName];
+    loadLeftMedia($(this).val());
     leftVid.load();
     rightVid.load();
 });
+
 $(selectB).change(function() {
-    var vidName = $(this).val();
-    uri.setSearch("rightVid", vidName);
-
-    try {
-        controller.currentTime = 0;
-    } catch (e) {
-        console.log(e.message);
-    }
-    rightVid.src = videoArray[vidName];
+    loadRightMedia($(this).val());
     leftVid.load();
     rightVid.load();
 });
 
-function onLeftVidLoadedData() {
-    splitSlider.style.top = leftVid.videoHeight / 2 + "px";
+function onLeftLoaded(width, height) {
+    splitSlider.style.top = height / 2 + "px";
 
     // There doesn't seem to be a less ugly way to change the style of these
     // pseudo-elements.
     inlineStyle.innerHTML =
-        "#splitSlider::-webkit-slider-thumb { height:" + leftVid.videoHeight + "px; }\n" +
-        "#splitSlider::-moz-range-thumb { height:" + leftVid.videoHeight + "px; }\n" +
-        "#splitSlider::-moz-range-track { height:" + leftVid.videoHeight + "px; }";
+        "#splitSlider::-webkit-slider-thumb { height:" + height + "px; }\n" +
+        "#splitSlider::-moz-range-thumb { height:" + height + "px; }\n" +
+        "#splitSlider::-moz-range-track { height:" + height + "px; }";
 
-    splitSlider.max = leftVid.videoWidth;
+    splitSlider.max = width;
     splitSlider.style.width = splitSlider.max + "px";
     splitSlider.value = splitSlider.max / 2;
     splitSlider.oninput = function() {
-        left.style.width = this.value + "px";
+        leftVidDiv.style.width = this.value + "px";
+        leftImgDiv.style.width = this.value + "px";
     };
     splitSlider.oninput();
 
-    rightVid.style.width = leftVid.videoWidth + "px";
-    rightVid.style.height = leftVid.videoHeight + "px";
+    rightVid.style.width = width + "px";
+    rightVid.style.height = height + "px";
+    rightImg.style.width = width + "px";
+    rightImg.style.height = height + "px";
+
     document.getElementById("playButton").innerHTML = playIcon;
 
     controller.muted = true;
@@ -221,13 +211,24 @@ function onLeftVidLoadedData() {
     seekSlider.value = 0;
 }
 
-// If the loadeddata event already fired, call the callback manually
-if (leftVidLoadedDataFired) {
-    onLeftVidLoadedData();
+function onLeftImgLoaded() {
+    if (leftImg.style.display != 'none') {
+        onLeftLoaded(leftImg.naturalWidth, leftImg.naturalHeight);
+    }
 }
 
+function onLeftVidLoaded() {
+    if (leftVid.style.display != 'none') {
+        onLeftLoaded(leftVid.videoWidth, leftVid.videoHeight);
+    }
+}
+
+$(leftImg).on("load", function() {
+    onLeftImgLoaded();
+});
+
 $(leftVid).on("loadeddata", function() {
-    onLeftVidLoadedData();
+    onLeftVidLoaded();
 }).on("ended", function() {
     // Loop the videos
     controller.currentTime = 0;
@@ -248,7 +249,7 @@ $(seekSlider).on("input", function() {
 });
 
 function controllerPlaying() {
-    return !(controller.played.length === 0 || controller.paused);
+    return controller.playbackState == "playing";
 }
 
 $(playButton).click(function() {
@@ -295,7 +296,6 @@ $(getLinkButton).click(function() {
 $(addUrlForm).submit(function() {
     var urlGroups = $(".videoSelector").optGroups("URLs");
     urlGroups.append($("<option/>", {text: videoUrl.value}));
-    videoArray[videoUrl.value] = videoUrl.value;
     videoUrl.value = "";
 
     // Don't actually submit the form, we just want to validate it
@@ -333,3 +333,95 @@ Mousetrap.bind("h", function() {
 Mousetrap.bind("l", function() {
     $(forwardButton).click();
 });
+
+// Bootstrap tabs control
+$('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
+    viewLink.href = e.target.dataset.css;
+});
+
+var defaultParams = {
+    "left": videoList[12],
+    "right": videoList[13]
+};
+var uri = new URI(location.href);
+var params = uri.search(true);
+
+
+if (params.time) {
+    var leftLoaded = false;
+    var rightLoaded = false;
+
+    // We need to wait until both videos are loaded before we can change
+    // the controller currentTime
+    $(leftVid).one("loadeddata", function() {
+        if (rightLoaded) {
+            controller.currentTime = params.time;
+        }
+        leftLoaded = true;
+    });
+    $(rightVid).one("loadeddata", function() {
+        if (leftLoaded) {
+            controller.currentTime = params.time;
+        }
+        rightLoaded = true;
+    });
+}
+
+// Trying to load an unplayable video in a video tag will make it impossible
+// to subsequently load any other video in that tag, so we need to be careful
+function canPlay(media) {
+    if (media.codec == "H.264") {
+        return canPlayH264;
+    }
+    if (media.codec == "VP9") {
+        return canPlayVP9;
+    }
+    return true;
+}
+
+// Load the medias
+if (params.left) {
+    loadLeftMedia(params.left);
+} else if (canPlay(defaultParams.left)) {
+    loadLeftMedia(defaultParams.left.path);
+} else {
+    leftImg.style.display = "none";
+}
+if (params.right) {
+    loadRightMedia(params.right);
+} else if (canPlay(defaultParams.right)) {
+    loadRightMedia(defaultParams.right.path);
+} else {
+    rightImg.style.display = "none";
+}
+
+$(leftVidDiv).append(leftVid);
+$(rightVidDiv).append(rightVid);
+
+if (leftImg.src === "") {
+    leftImg.src = "./samples/black.png";
+}
+if (rightImg.src === "") {
+    rightImg.src = "./samples/black.png";
+}
+$(leftImgDiv).append(leftImg);
+$(rightImgDiv).append(rightImg);
+
+$.fn.optGroups = function(labelText) {
+    var groups = this.children("optgroup[label='" + labelText + "']");
+    if (groups.length === 0) {
+        this.append($("<optgroup/>", {label: labelText}));
+        groups = this.children("optgroup[label='" + labelText + "']");
+    }
+    return groups;
+};
+
+$.each(videoList, function(i, v) {
+    if (canPlay(v)) {
+        var groups = $(".videoSelector").optGroups(v.sample);
+        groups.append($("<option/>", {text: v.path}));
+    }
+});
+
+$(selectA).val(uri.search(true).left);
+$(selectB).val(uri.search(true).right);
