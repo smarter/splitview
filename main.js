@@ -156,9 +156,12 @@ $.fn.optGroups = function(labelText) {
 };
 
 $.each(videoList, function(i, v) {
-    var groups = $(".videoSelector").optGroups(v.sample);
-    groups.append($("<option/>", {text: v.path}));
-    videoArray[v.path] = v.path;
+    if ((v.codec == "H.264" && canPlayH264) ||
+        (v.codec == "VP9" && canPlayVP9)) {
+        var groups = $(".videoSelector").optGroups(v.sample);
+        groups.append($("<option/>", {text: v.path}));
+        videoArray[v.path] = v.path;
+    }
 });
 
 $(selectA).val(uri.search(true).leftVid);
@@ -168,7 +171,11 @@ $(selectA).change(function() {
     var vidName = $(this).val();
     uri.setSearch("leftVid", vidName);
 
-    controller.currentTime = 0;
+    try {
+        controller.currentTime = 0;
+    } catch (e) {
+        console.log(e.message);
+    }
     leftVid.src = videoArray[vidName];
     leftVid.load();
     rightVid.load();
@@ -177,7 +184,11 @@ $(selectB).change(function() {
     var vidName = $(this).val();
     uri.setSearch("rightVid", vidName);
 
-    controller.currentTime = 0;
+    try {
+        controller.currentTime = 0;
+    } catch (e) {
+        console.log(e.message);
+    }
     rightVid.src = videoArray[vidName];
     leftVid.load();
     rightVid.load();
