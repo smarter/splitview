@@ -91,7 +91,7 @@ var videoList = [
 
 var TIME_STEP = 1.0 / 24.0;
 
-var addUrlButton = document.getElementById("addUrlButton");
+var addUrlForm = document.getElementById("addUrlForm");
 var backwardButton = document.getElementById("backwardButton");
 var forwardButton = document.getElementById("forwardButton");
 var getLinkButton = document.getElementById("getLinkButton");
@@ -148,12 +148,12 @@ $('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
 
 $.fn.optGroups = function(labelText) {
     var groups = this.children("optgroup[label='" + labelText + "']");
-    if (groups.length == 0) {
+    if (groups.length === 0) {
         this.append($("<optgroup/>", {label: labelText}));
         groups = this.children("optgroup[label='" + labelText + "']");
     }
     return groups;
-}
+};
 
 $.each(videoList, function(i, v) {
     var groups = $(".videoSelector").optGroups(v.sample);
@@ -165,7 +165,7 @@ $(selectA).val(uri.search(true).leftVid);
 $(selectB).val(uri.search(true).rightVid);
 
 $(selectA).change(function() {
-    var vidName = $(this).val()
+    var vidName = $(this).val();
     uri.setSearch("leftVid", vidName);
 
     controller.currentTime = 0;
@@ -174,7 +174,7 @@ $(selectA).change(function() {
     rightVid.load();
 });
 $(selectB).change(function() {
-    var vidName = $(this).val()
+    var vidName = $(this).val();
     uri.setSearch("rightVid", vidName);
 
     controller.currentTime = 0;
@@ -237,7 +237,7 @@ $(seekSlider).on("input", function() {
 });
 
 function controllerPlaying() {
-    return !(controller.played.length == 0 || controller.paused);
+    return !(controller.played.length === 0 || controller.paused);
 }
 
 $(playButton).click(function() {
@@ -247,7 +247,7 @@ $(playButton).click(function() {
     } else {
         controller.play();
         this.innerHTML = pauseIcon;
-    };
+    }
 });
 
 $(backwardButton).click(function() {
@@ -312,7 +312,7 @@ Mousetrap.stopCallback = function(e, element, combo) {
          (element.type == "number" || element.type == "text" || element.type == "url"));
 };
 
-Mousetrap.bind("space", function(e) {
+Mousetrap.bind("space", function() {
     $(playButton).click();
     return false; // prevent default behavior
 });
