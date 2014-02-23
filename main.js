@@ -135,7 +135,7 @@ mediaGroupSetup([leftVid, rightVid]);
 
 var controller = leftVid.controllerShim;
 
-var videoArray = new Array();
+var mediaURLArray = new Array();
 
 var playIcon = '<span class="glyphicon glyphicon-play"></span>';
 var pauseIcon = '<span class="glyphicon glyphicon-pause"></span>';
@@ -147,7 +147,7 @@ function loadMedia(name, thisParam, thisImg, thisVid, otherVid) {
 
     if (ext == "gif" || ext == "jpg" || ext == "jpeg" || ext == "png") {
         var oldName = thisImg.src;
-        thisImg.src = name;
+        thisImg.src = mediaURLArray[name] || name;
         thisImg.style.display = "";
         thisVid.style.display = "none";
         if (oldName == name && thisImg == leftImg) {
@@ -155,7 +155,7 @@ function loadMedia(name, thisParam, thisImg, thisVid, otherVid) {
             onLeftImgLoaded();
         }
     } else {
-        thisVid.src = videoArray[name] || name;
+        thisVid.src = mediaURLArray[name] || name;
         thisVid.style.display = "";
         thisImg.style.display = "none";
     }
@@ -294,7 +294,7 @@ $(getLinkButton).click(function() {
 });
 
 $(addUrlForm).submit(function() {
-    var urlGroups = $(".videoSelector").optGroups("URLs");
+    var urlGroups = $(".mediaSelector").optGroups("URLs");
     urlGroups.append($("<option/>", {text: videoUrl.value}));
     videoUrl.value = "";
 
@@ -305,12 +305,13 @@ $(addUrlForm).submit(function() {
 $(localFile).change(function(event) {
     var files = event.target.files;
     for (var i = 0, f; f = files[i]; i++) {
-        if (!f.type.match('video.*')) {
+        if (!f.type.match('video.*') && !f.type.match('image.*')) {
+            console.warn("Ignoring local file " + f.name + " with unsupported type " + f.type);
             continue;
         }
-        var localGroups = $(".videoSelector").optGroups("Local files");
+        var localGroups = $(".mediaSelector").optGroups("Local files");
         localGroups.append($("<option/>", {text: f.name}));
-        videoArray[f.name] = window.URL.createObjectURL(f);
+        mediaURLArray[f.name] = window.URL.createObjectURL(f);
     }
 });
 
@@ -418,7 +419,7 @@ $.fn.optGroups = function(labelText) {
 
 $.each(videoList, function(i, v) {
     if (canPlay(v)) {
-        var groups = $(".videoSelector").optGroups(v.sample);
+        var groups = $(".mediaSelector").optGroups(v.sample);
         groups.append($("<option/>", {text: v.path}));
     }
 });
