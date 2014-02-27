@@ -293,9 +293,28 @@ $(getLinkButton).click(function() {
     getLinkUrl.select();
 });
 
+$.fn.optGroups = function(labelText) {
+    var groups = this.children("optgroup[label='" + labelText + "']");
+    if (groups.length === 0) {
+        this.append($("<optgroup/>", {label: labelText}));
+        groups = this.children("optgroup[label='" + labelText + "']");
+    }
+    return groups;
+};
+
+function addUrl(url) {
+    var existingUrl =
+        $(".mediaSelector option").filter(function() {
+            return this.value === url;
+        }).length !== 0;
+    if (!existingUrl) {
+        var urlGroups = $(".mediaSelector").optGroups("URLs");
+        urlGroups.append($("<option/>", {text: url}));
+    }
+}
+
 $(addUrlForm).submit(function() {
-    var urlGroups = $(".mediaSelector").optGroups("URLs");
-    urlGroups.append($("<option/>", {text: videoUrl.value}));
+    addUrl(videoUrl.value);
     videoUrl.value = "";
 
     // Don't actually submit the form, we just want to validate it
@@ -380,8 +399,15 @@ function canPlay(media) {
     return true;
 }
 
+$.each(videoList, function(i, v) {
+    if (canPlay(v)) {
+        var groups = $(".mediaSelector").optGroups(v.sample);
+        groups.append($("<option/>", {text: v.path}));
+    }
+});
 // Load the medias
 if (params.left) {
+    addUrl(params.left);
     loadLeftMedia(params.left);
 } else if (canPlay(defaultParams.left)) {
     loadLeftMedia(defaultParams.left.path);
@@ -389,6 +415,7 @@ if (params.left) {
     leftImg.style.display = "none";
 }
 if (params.right) {
+    addUrl(params.right);
     loadRightMedia(params.right);
 } else if (canPlay(defaultParams.right)) {
     loadRightMedia(defaultParams.right.path);
@@ -407,22 +434,6 @@ if (rightImg.src === "") {
 }
 $(leftImgDiv).append(leftImg);
 $(rightImgDiv).append(rightImg);
-
-$.fn.optGroups = function(labelText) {
-    var groups = this.children("optgroup[label='" + labelText + "']");
-    if (groups.length === 0) {
-        this.append($("<optgroup/>", {label: labelText}));
-        groups = this.children("optgroup[label='" + labelText + "']");
-    }
-    return groups;
-};
-
-$.each(videoList, function(i, v) {
-    if (canPlay(v)) {
-        var groups = $(".mediaSelector").optGroups(v.sample);
-        groups.append($("<option/>", {text: v.path}));
-    }
-});
 
 $(selectA).val(uri.search(true).left);
 $(selectB).val(uri.search(true).right);
