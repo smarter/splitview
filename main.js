@@ -353,6 +353,21 @@ Mousetrap.bind("h", function() {
 Mousetrap.bind("l", function() {
     $(forwardButton).click();
 });
+Mousetrap.bind("1", function() {
+    $('#viewNav a[data-css="./splitview.css"]').tab('show');
+});
+Mousetrap.bind("2", function() {
+    $('#viewNav a[data-css="./vertview.css"]').tab('show');
+});
+Mousetrap.bind("3", function() {
+    $('#viewNav a[data-css="./horizview.css"]').tab('show');
+});
+Mousetrap.bind("4", function() {
+    $('#viewNav a[data-css="./leftview.css"]').tab('show');
+});
+Mousetrap.bind("5", function() {
+    $('#viewNav a[data-css="./rightview.css"]').tab('show');
+});
 
 // Bootstrap tabs control
 $('a[data-toggle="tab"]').on('show.bs.tab', function (e) {
